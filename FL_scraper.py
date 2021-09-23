@@ -164,6 +164,10 @@ class scraper:
         self.next_page_click.click()
 
     def page_looper(self):
+<<<<<<< HEAD
+=======
+#         self.atty_search()
+>>>>>>> af4ce7d0de0c0584eab626eedf8ea02f4373d3db
         temp_list = []
         while self.last_page_checker() == False:
             temp_df = pd.DataFrame(self.details_parent())
@@ -171,11 +175,19 @@ class scraper:
             self.next_page_clicker()
         temp_df = pd.DataFrame(self.details_parent())
         temp_list.append(temp_df)
+<<<<<<< HEAD
 
         try:
             self.close()
             self.df_left = pd.concat(temp_list).reset_index(drop = True)
             return self.df_left
+=======
+        
+        try:
+            self.close()
+            self.df_left = pd.concat(temp_list).reset_index(drop = True)
+            return pd.concat(temp_list).reset_index(drop = True)
+>>>>>>> af4ce7d0de0c0584eab626eedf8ea02f4373d3db
         except:
             raise("Error in concatinating dataframe list in page looper")
 
