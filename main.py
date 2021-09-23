@@ -15,9 +15,11 @@ test.atty_search()
 test.details_parent()
 
 print(test.df_right)
+print(test.last_page_checker())
 
-test.last_page_checker()
-test.close()
+test.next_page_clicker()
+
+# test.close()
 
 
 

@@ -128,13 +128,28 @@ class scraper:
         else:
             return False
 
+    @sleep(3)
     def next_page_clicker(self):
         '''Clicks the next page'''
-        self.next_page_click = self.browser.find_element_by_xpath('''//*[@id="content"]/div[2]/div[2]/div[3]/ul[2]/li[8]/a/i''')
+        self.next_page_click = self.browser.find_element_by_xpath('''//*[@id="content"]/div[2]/div[2]/div[3]/ul[2]/li[7]/a''')
         self.next_page_click.click()
 
-    
-
+    def page_looper(self):
+#         self.atty_search()
+        temp_list = []
+        while self.last_page_checker() == False:
+            temp_df = pd.DataFrame(self.details_parent())
+            temp_list.append(temp_df)
+            self.next_page_clicker()
+        temp_df = pd.DataFrame(self.details_parent())
+        temp_list.append(temp_df)
+        
+        try:
+            self.close()
+            self.df_left = pd.concat(temp_list).reset_index(drop = True)
+            return pd.concat(temp_list).reset_index(drop = True)
+        except:
+            raise("Error in concatinating dataframe list in page looper")
 
     def close(self):
         '''kill process'''
