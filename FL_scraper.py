@@ -25,7 +25,7 @@ class scraper:
     def full_auto(self):
         self.atty_search()
         self.page_looper()
-        # self.details_child_loop()
+        self.details_child_loop()
         # self.output = pd.concat([self.df_left, self.df_right], axis = 1)
         self.df_left.to_csv('output.csv', index = False)
     
@@ -71,7 +71,7 @@ class scraper:
         xpath = str(xpath)
         try:
             # print("Element found")
-            return member.find_element_by_class_name(xpath).text 
+            return member.find_element_by_xpath(xpath).text 
         except:
             # print("Error occurrence")
             # print(xpath)
@@ -90,28 +90,13 @@ class scraper:
                      'Profile Link':[]}
 
         for index,member in enumerate(self.browser.find_elements_by_class_name("profile-compact")):
-            self.member_name = self.element_search(member, "profile-name")
-            self.bar_number = self.element_search(member, "profile-bar-number")
-            # self.full_address = self.element_search(member, '''//*[@id="output"]/div/ul/li[1]/div[2]/p[1]''')
-            # self.phone = self.element_search(member, '''//*[@id="output"]/div/ul/li[1]/div[2]/p[2]/a[2]''')
-            # self.cell_number = self.element_search(member, '''//*[@id="output"]/div/ul/li[1]/div[2]/p[2]/a[2]''')
-            # self.email = self.element_search(member, '''//*[@id="output"]/div/ul/li[1]/div[2]/p[2]/a[3]''')
-            
-            # self.status = self.element_search(member, "eligibility eligibility-eligible")
-            # there are multiple class for status (eligible and non-eligible)   
-            # if self.status == "No value found":
-            #     print("status condition true")
-            #     self.status2 = self.element_search(member, "eligibility eligibility-ineligible-neutral")
-            self.status = member.find_element_by_xpath('''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[1]/div[3]''').text
-
-            print('================================================')
-            print(self.status)
-            print("index value: ", index)
-            print('================================================')
-            print(self.member_name)
-            # self.bar_number = member.find_element_by_class_name("profile-bar-number").text 
-            print(self.bar_number)   
-            # print(self.status)    
+            self.member_name = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[1]/div[2]/p[1]/a''')
+            self.bar_number = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[1]/div[2]/p[2]''')
+            self.full_address = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[2]/p[1]''')
+            self.phone = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[2]/p[2]/a[2]''')
+            self.cell_number = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[2]/p[2]/a[2]''')
+            self.email = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[2]/p[2]/a[3]''')
+            self.status = self.element_search(member, '''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[1]/div[3]''')
 
             temp_dict['Attorney Name'].append(self.member_name)
             temp_dict['Bar #'].append(self.bar_number)
@@ -120,10 +105,58 @@ class scraper:
             temp_dict['Cell'].append(self.cell_number)
             temp_dict['Email'].append(self.email)
             temp_dict['Status'].append(self.status)
-            temp_dict['Profile Link'].append(member.find_element_by_xpath('''//*[@id="output"]/div/ul/li[1]/div[1]/div[2]/p[1]/a''').get_attribute('href'))
+            
+            #preprocessing profile link as there are some 
+            prof_link = member.find_element_by_xpath('''//*[@id="output"]/div/ul/li[''' + str(index + 1) + ''']/div[1]/div[2]/p[1]/a''').get_attribute('href')
+            prof_link = 'https://www.floridabar.org/mybarprofile/' + prof_link.split('?num=')[1]
+            temp_dict['Profile Link'].append(prof_link)
         
-        pd.DataFrame(temp_dict).reset_index(drop = False).to_csv('output'+ +'.csv', index = False)
+        # pd.DataFrame(temp_dict).reset_index(drop = False).to_csv('output'+ +'.csv', index = False)
         return pd.DataFrame(temp_dict).reset_index(drop = False)
+
+    def details_child_loop(self):
+        temp_dict = {'Admitted Date':[],
+                    'Law School':[],
+                    'Practice Area':[],
+                    'Firm':[],
+                    'Firm Size':[],
+                    'Firm Position':[],
+                    'Firm Website':[]}
+
+        self.browser = webdriver.Chrome(options = options)
+        links = self.df_left['Profile Link']
+        for link in links:
+            self.sleep(6)
+            self.browser.get(link)
+
+            #Admitted Date
+            print(self.element_search(self.browser, '''//*[@id="mProfile"]/div[8]/div[2]/p'''))
+            temp_dict['Admitted Date'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[8]/div[2]/p''')
+            
+            #Law School
+            temp_dict['Law School'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[10]/div[2]/p''')
+
+            #Practice Area
+            temp_dict['Practice Area'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[11]/div[2]''')
+
+            #Firm
+            temp_dict['Firm'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[12]/div[2]/p''')
+
+            #Firm Size
+            temp_dict['Firm Size'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[13]/div[2]/p''')
+
+            #Firm Position
+            temp_dict['Firm Position'] = self.element_search(self.browser, '''//*[@id="mProfile"]/div[14]/div[2]/p''')
+
+            #Firm Website
+            try:
+                temp_dict['Firm Website'] = self.browser.find_element_by_xpath('''//*[@id="mProfile"]/div[15]/div[2]/p/a''').get_attribute('href')
+            except:
+                temp_dict['Firm Website'] = 'No value found'
+        self.df_right = pd.DataFrame(temp_dict)
+
+
+
 
     def last_page_checker(self):
         '''Check if the current viewed page is the last page. Returns binary values'''
